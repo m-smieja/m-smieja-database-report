@@ -1,0 +1,10 @@
+_build/
+*.pyc
+__pycache__/
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+venv/
+.env
