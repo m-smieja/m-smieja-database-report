@@ -1,0 +1,15 @@
+[submodule "2.chapter/2.3"]
+	path = 2.chapter/2.3
+	url = https://github.com/Chaiolites/Konfiguracja_baz_danych.git
+[submodule "2.chapter/2.2"]
+	path = 2.chapter/2.2
+	url = https://github.com/oszczeda/Sprzet-dla-bazy-danych.git
+[submodule "2.chapter/2.1"]
+	path = 2.chapter/2.1
+	url = https://github.com/Broksonn/Wydajnosc_Skalowanie_i_Replikacja.git
+[submodule "2.chapter/2.5"]
+	path = 2.chapter/2.5
+	url = https://github.com/m-smieja/Kopie_zapasowe_i_odzyskiwanie_danych.git
+[submodule "2.chapter/2.4"]
+	path = 2.chapter/2.4
+	url = https://github.com/BlazejUl/bezpieczenstwo.git
