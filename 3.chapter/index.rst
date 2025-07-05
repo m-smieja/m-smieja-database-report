@@ -478,281 +478,234 @@ System został zaprojektowany z myślą o następujących wolumenach danych:
 Prezentacja skryptów wspomagających
 ------------------------------------
 
-System zawiera zestaw skryptów SQL i procedur składowanych wspomagających zarządzanie danymi i generowanie raportów.
+System zawiera dwa główne moduły Python wspomagające pracę z bazą danych CRM bez znajomości SQL.
 
-Skrypt tworzenia bazy danych
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Moduł raportowania i analizy danych
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: sql
+Moduł ``crm_reporter.py`` wykorzystuje biblioteki numpy, pandas i matplotlib do generowania kompleksowych raportów i wizualizacji danych CRM.
 
-    -- create_crm_database.sql
-    -- Skrypt tworzący kompletną strukturę bazy danych CRM
+**Główna klasa i funkcjonalności:**
+
+.. code-block:: python
+
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from datetime import datetime, timedelta
     
-    CREATE DATABASE IF NOT EXISTS crm_system
-        CHARACTER SET utf8mb4
-        COLLATE utf8mb4_unicode_ci;
-    
-    USE crm_system;
-    
-    -- Włączenie trybu strict
-    SET sql_mode = 'STRICT_ALL_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE';
-
-Procedury składowane
-~~~~~~~~~~~~~~~~~~~~
-
-**1. Procedura dodawania nowego kontaktu z automatycznym tagowaniem**
-
-.. code-block:: sql
-
-    DELIMITER //
-    
-    CREATE PROCEDURE sp_add_contact(
-        IN p_first_name VARCHAR(50),
-        IN p_last_name VARCHAR(50),
-        IN p_email VARCHAR(100),
-        IN p_company_id INT,
-        IN p_assigned_to INT,
-        OUT p_contact_id INT
-    )
-    BEGIN
-        DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
+    class CRMReporter:
+        """Klasa do generowania raportów z bazy danych CRM"""
         
-        START TRANSACTION;
-        
-        -- Wstawienie kontaktu
-        INSERT INTO contacts (
-            first_name, last_name, email, 
-            company_id, assigned_to, lead_status
-        ) VALUES (
-            p_first_name, p_last_name, p_email,
-            p_company_id, p_assigned_to, 'new'
-        );
-        
-        SET p_contact_id = LAST_INSERT_ID();
-        
-        -- Automatyczne tagowanie na podstawie domeny email
-        IF p_email LIKE '%@gmail.com' OR p_email LIKE '%@outlook.com' THEN
-            INSERT INTO contact_tags (contact_id, tag_id)
-            SELECT p_contact_id, tag_id 
-            FROM tags WHERE name = 'B2C';
-        END IF;
-        
-        COMMIT;
-    END //
-    
-    DELIMITER ;
+        def generate_lead_funnel_report(self, start_date=None, end_date=None):
+            """
+            Generuje raport lejka sprzedażowego z wizualizacją
+            """
+            query = """
+            SELECT lead_status, COUNT(*) as count,
+                   AVG(DATEDIFF(NOW(), created_at)) as avg_age_days
+            FROM contacts
+            GROUP BY lead_status
+            ORDER BY FIELD(lead_status, 'new', 'contacted', 
+                          'qualified', 'customer', 'lost')
+            """
+            
+            df = pd.read_sql(query, self.connection)
+            
+            # Obliczenie procentów i wizualizacja
+            total = df['count'].sum()
+            df['percentage'] = (df['count'] / total * 100).round(2)
+            
+            # Wykres lejkowy
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+            colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#95a5a6']
+            
+            ax1.barh(df.index, df['count'], color=colors)
+            ax1.set_yticklabels(df['lead_status'])
+            ax1.set_title('Lejek sprzedażowy')
+            
+            ax2.pie(df['count'], labels=df['lead_status'], 
+                   colors=colors, autopct='%1.1f%%')
+            
+            return {'data': df, 'figure': fig}
 
-**2. Funkcja obliczająca wartość klienta**
+Funkcja ``generate_lead_funnel_report`` analizuje przepływ kontaktów przez kolejne etapy procesu sprzedaży. Wykorzystuje pandas do agregacji danych według statusu leada, oblicza procentowy udział każdego etapu oraz średni czas przebywania kontaktu w systemie. Matplotlib generuje dwa typy wizualizacji: wykres słupkowy poziomy pokazujący liczebność każdego etapu oraz wykres kołowy przedstawiający rozkład procentowy.
 
-.. code-block:: sql
+**Analiza wydajności użytkowników:**
 
-    DELIMITER //
-    
-    CREATE FUNCTION fn_calculate_contact_value(p_contact_id INT)
-    RETURNS DECIMAL(10,2)
-    READS SQL DATA
-    DETERMINISTIC
-    BEGIN
-        DECLARE v_interaction_count INT;
-        DECLARE v_task_completion_rate DECIMAL(5,2);
-        DECLARE v_days_since_creation INT;
-        DECLARE v_value DECIMAL(10,2);
+.. code-block:: python
+
+    def analyze_user_performance(self, period_days=30):
+        """
+        Analizuje wydajność użytkowników w zadanym okresie
+        """
+        query = f"""
+        SELECT u.username,
+               COUNT(DISTINCT c.contact_id) as managed_contacts,
+               COUNT(DISTINCT i.interaction_id) as interactions_made,
+               COUNT(DISTINCT CASE WHEN t.status = 'completed' 
+                    THEN t.task_id END) as tasks_completed,
+               COUNT(DISTINCT CASE WHEN c.lead_status = 'customer' 
+                    THEN c.contact_id END) as new_customers
+        FROM users u
+        LEFT JOIN contacts c ON u.user_id = c.assigned_to
+        LEFT JOIN interactions i ON u.user_id = i.user_id
+        LEFT JOIN tasks t ON u.user_id = t.assigned_to
+        WHERE u.is_active = TRUE
+        GROUP BY u.user_id
+        """
         
-        -- Liczba interakcji
-        SELECT COUNT(*) INTO v_interaction_count
-        FROM interactions
-        WHERE contact_id = p_contact_id;
+        df = pd.read_sql(query, self.connection)
         
-        -- Wskaźnik ukończonych zadań
-        SELECT 
-            COALESCE(
-                100.0 * SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) / 
-                NULLIF(COUNT(*), 0), 
-                0
+        # Obliczenie metryk wydajności
+        df['task_completion_rate'] = (
+            df['tasks_completed'] / df['tasks_created'].replace(0, 1) * 100
+        ).round(2)
+        
+        # Score wydajności - ważona suma metryk
+        df['performance_score'] = (
+            df['new_customers'] * 100 +
+            df['interactions_made'] * 5 +
+            df['task_completion_rate']
+        )
+        
+        return df.sort_values('performance_score', ascending=False)
+
+Metoda agreguje dane o aktywności każdego użytkownika, łącząc informacje z tabel kontaktów, interakcji i zadań. Pandas umożliwia obliczenie złożonych metryk jak wskaźnik ukończonych zadań czy score wydajności będący ważoną sumą różnych wskaźników. Wynik sortowany jest według obliczonego score, co pozwala szybko zidentyfikować najefektywniejszych pracowników.
+
+Moduł wyszukiwania bez znajomości SQL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Moduł ``crm_search.py`` udostępnia intuicyjny interfejs do przeszukiwania bazy danych poprzez nazwane parametry zamiast pisania zapytań SQL.
+
+**Wyszukiwanie kontaktów z filtrami:**
+
+.. code-block:: python
+
+    class CRMSearch:
+        """Klasa do wyszukiwania w bazie CRM bez SQL"""
+        
+        def find_contacts(self, first_name=None, last_name=None, 
+                         email=None, company_name=None, 
+                         lead_status=None, created_after=None,
+                         has_interactions=None, limit=100):
+            """
+            Wyszukuje kontakty według podanych kryteriów
+            """
+            conditions = []
+            params = []
+            
+            # Budowanie warunków dynamicznie
+            if first_name:
+                conditions.append("c.first_name LIKE %s")
+                params.append(f"%{first_name}%")
+                
+            if email:
+                conditions.append("c.email LIKE %s")
+                params.append(f"%{email}%")
+                
+            if lead_status:
+                if isinstance(lead_status, list):
+                    placeholders = ','.join(['%s'] * len(lead_status))
+                    conditions.append(f"c.lead_status IN ({placeholders})")
+                    params.extend(lead_status)
+                else:
+                    conditions.append("c.lead_status = %s")
+                    params.append(lead_status)
+            
+            where_clause = " AND ".join(conditions) if conditions else "1=1"
+            
+            query = f"""
+            SELECT c.*, comp.name as company_name,
+                   COUNT(i.interaction_id) as interaction_count
+            FROM contacts c
+            LEFT JOIN companies comp ON c.company_id = comp.company_id
+            LEFT JOIN interactions i ON c.contact_id = i.contact_id
+            WHERE {where_clause}
+            GROUP BY c.contact_id
+            LIMIT %s
+            """
+            
+            params.append(limit)
+            self.cursor.execute(query, params)
+            return self.cursor.fetchall()
+
+Funkcja umożliwia wyszukiwanie kontaktów używając dowolnej kombinacji kryteriów. System dynamicznie buduje zapytanie SQL na podstawie przekazanych parametrów - dodaje tylko te warunki WHERE, dla których użytkownik podał wartości. Obsługuje różne typy wyszukiwania: częściowe dopasowanie tekstu (LIKE), dokładne dopasowanie, wyszukiwanie w zakresie dat oraz sprawdzanie przynależności do listy wartości.
+
+**Wyszukiwanie zadań z zaawansowanymi filtrami:**
+
+.. code-block:: python
+
+    def find_tasks(self, status=None, priority=None,
+                   assigned_to_username=None, overdue_only=False,
+                   due_date_from=None, due_date_to=None):
+        """
+        Wyszukuje zadania z dodatkowymi informacjami kontekstowymi
+        """
+        conditions = []
+        
+        if overdue_only:
+            conditions.append(
+                "t.due_date < CURDATE() AND t.status != 'completed'"
             )
-        INTO v_task_completion_rate
-        FROM tasks
-        WHERE contact_id = p_contact_id;
+            
+        query = f"""
+        SELECT t.*, 
+               CONCAT(c.first_name, ' ', c.last_name) as contact_name,
+               u.username as assigned_username,
+               CASE 
+                   WHEN t.due_date < CURDATE() AND t.status != 'completed' 
+                   THEN DATEDIFF(CURDATE(), t.due_date)
+                   ELSE 0
+               END as days_overdue
+        FROM tasks t
+        JOIN contacts c ON t.contact_id = c.contact_id
+        JOIN users u ON t.assigned_to = u.user_id
+        WHERE {where_clause}
+        ORDER BY t.due_date ASC
+        """
+
+Metoda łączy dane z wielu tabel, aby dostarczyć pełny kontekst każdego zadania. Automatycznie oblicza dodatkowe metryki jak liczba dni po terminie dla zaległych zadań. Szczególnie użyteczna jest flaga ``overdue_only``, która pozwala szybko znaleźć wszystkie przeterminowane zadania bez konieczności ręcznego porównywania dat.
+
+**Uniwersalne przeszukiwanie:**
+
+.. code-block:: python
+
+    def quick_search(self, search_term, limit=20):
+        """
+        Szybkie wyszukiwanie we wszystkich tabelach
+        """
+        results = {}
         
-        -- Dni od utworzenia
-        SELECT DATEDIFF(NOW(), created_at)
-        INTO v_days_since_creation
-        FROM contacts
-        WHERE contact_id = p_contact_id;
+        # Równoległe przeszukiwanie wszystkich typów danych
+        results['contacts'] = self.find_contacts(
+            first_name=search_term, last_name=search_term, 
+            email=search_term, limit=limit
+        )
         
-        -- Wzór na wartość klienta
-        SET v_value = (v_interaction_count * 10) + 
-                      (v_task_completion_rate * 5) + 
-                      (LEAST(v_days_since_creation, 365) * 0.5);
+        results['companies'] = self.find_companies(
+            name=search_term, limit=limit
+        )
         
-        RETURN v_value;
-    END //
-    
-    DELIMITER ;
-
-Widoki (Views)
-~~~~~~~~~~~~~~
-
-**1. Widok aktywnych leadów**
-
-.. code-block:: sql
-
-    CREATE OR REPLACE VIEW v_active_leads AS
-    SELECT 
-        c.contact_id,
-        CONCAT(c.first_name, ' ', c.last_name) AS full_name,
-        c.email,
-        c.lead_status,
-        comp.name AS company_name,
-        u.username AS assigned_to_user,
-        COUNT(DISTINCT i.interaction_id) AS interaction_count,
-        MAX(i.interaction_date) AS last_interaction,
-        COUNT(DISTINCT t.task_id) AS pending_tasks
-    FROM contacts c
-    LEFT JOIN companies comp ON c.company_id = comp.company_id
-    LEFT JOIN users u ON c.assigned_to = u.user_id
-    LEFT JOIN interactions i ON c.contact_id = i.contact_id
-    LEFT JOIN tasks t ON c.contact_id = t.contact_id 
-        AND t.status IN ('pending', 'in_progress')
-    WHERE c.lead_status IN ('new', 'contacted', 'qualified')
-    GROUP BY c.contact_id;
-
-**2. Widok podsumowania użytkowników**
-
-.. code-block:: sql
-
-    CREATE OR REPLACE VIEW v_user_performance AS
-    SELECT 
-        u.user_id,
-        u.username,
-        COUNT(DISTINCT c.contact_id) AS total_contacts,
-        COUNT(DISTINCT i.interaction_id) AS total_interactions,
-        COUNT(DISTINCT t.task_id) AS total_tasks,
-        SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) AS completed_tasks,
-        AVG(CASE 
-            WHEN t.status = 'completed' 
-            THEN DATEDIFF(t.updated_at, t.created_at) 
-            ELSE NULL 
-        END) AS avg_task_completion_days
-    FROM users u
-    LEFT JOIN contacts c ON u.user_id = c.assigned_to
-    LEFT JOIN interactions i ON u.user_id = i.user_id
-    LEFT JOIN tasks t ON u.user_id = t.assigned_to
-    WHERE u.is_active = TRUE
-    GROUP BY u.user_id;
-
-Triggery
-~~~~~~~~
-
-**Trigger aktualizujący timestamp modyfikacji**
-
-.. code-block:: sql
-
-    DELIMITER //
-    
-    CREATE TRIGGER trg_contacts_update_timestamp
-    BEFORE UPDATE ON contacts
-    FOR EACH ROW
-    BEGIN
-        SET NEW.updated_at = CURRENT_TIMESTAMP;
+        results['tasks'] = self.find_tasks(
+            title_contains=search_term, limit=limit
+        )
         
-        -- Automatyczna zmiana statusu przy pierwszym kontakcie
-        IF OLD.lead_status = 'new' AND NEW.lead_status = 'new' THEN
-            IF EXISTS (
-                SELECT 1 FROM interactions 
-                WHERE contact_id = NEW.contact_id
-            ) THEN
-                SET NEW.lead_status = 'contacted';
-            END IF;
-        END IF;
-    END //
-    
-    DELIMITER ;
+        return results
 
-Skrypty administracyjne
-~~~~~~~~~~~~~~~~~~~~~~~
+Funkcja ``quick_search`` implementuje wyszukiwanie globalne - jedna fraza jest szukana we wszystkich istotnych polach wszystkich tabel. Zwraca pogrupowane wyniki, co pozwala użytkownikowi szybko znaleźć poszukiwane informacje niezależnie od tego, czy jest to kontakt, firma czy zadanie.
 
-**1. Skrypt czyszczenia starych danych**
+Podsumowanie
+~~~~~~~~~~~~
 
-.. code-block:: sql
+Przedstawione moduły znacząco ułatwiają pracę z bazą danych CRM:
 
-    -- cleanup_old_data.sql
-    -- Usuwa interakcje starsze niż 2 lata
-    
-    DELETE FROM interactions
-    WHERE interaction_date < DATE_SUB(NOW(), INTERVAL 2 YEAR)
-    AND contact_id IN (
-        SELECT contact_id FROM contacts 
-        WHERE lead_status = 'lost'
-    );
-    
-    -- Archiwizacja nieaktywnych kontaktów
-    INSERT INTO contacts_archive
-    SELECT * FROM contacts
-    WHERE updated_at < DATE_SUB(NOW(), INTERVAL 1 YEAR)
-    AND lead_status IN ('lost', 'unqualified');
+1. **Moduł raportowania** automatyzuje generowanie złożonych analiz i wizualizacji, wykorzystując możliwości bibliotek pandas i matplotlib do przetwarzania danych i tworzenia profesjonalnych wykresów.
 
-**2. Skrypt generowania raportów**
+2. **Moduł wyszukiwania** eliminuje barierę techniczną, umożliwiając osobom nieznającym SQL wykonywanie zaawansowanych zapytań poprzez prosty interfejs pythonowy z nazwanymi parametrami.
 
-.. code-block:: sql
-
-    -- monthly_report.sql
-    -- Generuje miesięczny raport aktywności
-    
-    SELECT 
-        DATE_FORMAT(NOW(), '%Y-%m') AS report_month,
-        COUNT(DISTINCT c.contact_id) AS new_contacts,
-        COUNT(DISTINCT i.interaction_id) AS total_interactions,
-        COUNT(DISTINCT CASE 
-            WHEN i.type = 'meeting' THEN i.interaction_id 
-        END) AS meetings_held,
-        COUNT(DISTINCT CASE 
-            WHEN t.status = 'completed' THEN t.task_id 
-        END) AS tasks_completed,
-        COUNT(DISTINCT CASE 
-            WHEN c.lead_status = 'customer' THEN c.contact_id 
-        END) AS new_customers
-    FROM contacts c
-    LEFT JOIN interactions i ON c.contact_id = i.contact_id
-        AND MONTH(i.interaction_date) = MONTH(NOW())
-        AND YEAR(i.interaction_date) = YEAR(NOW())
-    LEFT JOIN tasks t ON c.contact_id = t.contact_id
-        AND MONTH(t.updated_at) = MONTH(NOW())
-        AND YEAR(t.updated_at) = YEAR(NOW())
-    WHERE MONTH(c.created_at) = MONTH(NOW())
-        AND YEAR(c.created_at) = YEAR(NOW());
-
-Dokumentacja API bazy danych
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-System udostępnia zestaw procedur składowanych stanowiących API dla aplikacji:
-
-.. list-table:: API procedur składowanych
-   :header-rows: 1
-   :widths: 30 40 30
-
-   * - Procedura
-     - Opis
-     - Parametry
-   * - sp_add_contact
-     - Dodaje nowy kontakt
-     - first_name, last_name, email, company_id, assigned_to
-   * - sp_log_interaction
-     - Rejestruje interakcję
-     - contact_id, user_id, type, subject, description
-   * - sp_create_task
-     - Tworzy nowe zadanie
-     - title, contact_id, assigned_to, due_date, priority
-   * - sp_update_lead_status
-     - Aktualizuje status leada
-     - contact_id, new_status, reason
-   * - sp_get_user_dashboard
-     - Pobiera dane do dashboardu
-     - user_id, date_from, date_to
+Oba moduły zaprojektowano z myślą o łatwości użycia, wydajności i możliwości rozbudowy o dodatkowe funkcjonalności.
 
 Podsumowanie
 ------------
