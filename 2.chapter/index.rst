@@ -1,7 +1,7 @@
-Rozdział 2 - Analiza Szczegółowa
+Badania literaturowe [CLAAA01]
 =================================
 
-Ten rozdział zawiera pięć niezależnych projektów zarządzanych jako osobne repozytoria, 
+Ten rozdział zawiera niezależne projekty zarządzane jako osobne repozytoria, 
 każdy skupiający się na kluczowym aspekcie systemu bazy danych.
 
 .. toctree::
@@ -14,13 +14,6 @@ każdy skupiający się na kluczowym aspekcie systemu bazy danych.
    2.4/index
    2.5/index
 
-Wprowadzenie
-------------
-
-W tym rozdziale przedstawiamy pięć kluczowych komponentów systemu bazy danych, 
-które zostały wydzielone jako niezależne moduły. Każdy z nich jest zarządzany 
-w osobnym repozytorium Git, co umożliwia specjalizację zespołów i niezależny 
-rozwój poszczególnych aspektów.
 
 Struktura projektów
 -------------------
@@ -53,22 +46,6 @@ Struktura projektów
      - Kopie zapasowe i odzyskiwanie danych
      - m-smieja
      - `GitHub <https://github.com/m-smieja/Kopie_zapasowe_i_odzyskiwanie_danych>`_
-
-Instrukcja aktualizacji
------------------------
-
-Aby zaktualizować zawartość wszystkich podrozdziałów::
-
-    git submodule update --remote --merge
-
-Aby pracować nad konkretnym modułem::
-
-    cd 2.chapter/2.1
-    git checkout main
-    # wprowadź zmiany
-    git add .
-    git commit -m "Opis zmian"
-    git push origin main
 
 Współpraca
 ----------
