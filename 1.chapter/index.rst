@@ -1,40 +1,32 @@
-Wstęp
-=====
+Wprowadzenie
+============
 
-Cel dokumentacji
+Cel sprawozdania
 ----------------
 
-Ta dokumentacja została stworzona w celu kompleksowego opisania struktury i funkcjonalności 
-systemu bazy danych. Zawiera szczegółowe informacje techniczne, modele danych oraz 
-instrukcje dla deweloperów i administratorów.
+Celem niniejszego sprawozdania jest przedstawienie kompleksowego procesu projektowania, analizy oraz optymalizacji bazy danych w oparciu o badania literaturowe oraz praktyczne repozytoria dostępne online. W pierwszej części pracy dokonano przeglądu literatury i dostępnych zasobów dotyczących wydajności, skalowania oraz bezpieczeństwa baz danych, co stanowiło fundament do dalszych działań projektowych.
 
-Zakres projektu
----------------
+Zakres sprawozdania
+-------------------
 
-Projekt obejmuje:
+Sprawozdanie obejmuje:
 
-* Projektowanie struktury bazy danych
-* Implementację modeli danych
-* Optymalizację zapytań
-* Dokumentację API
-* Procedury backup i recovery
+* Badania literaturowe i przegląd repozytoriów
+* Projekt bazy danych w trzech modelach: konceptualnym, logicznym i fizycznym
+* Opis danych przechowywanych w bazie wraz z wizualizacją
+* Prezentację skryptów wspomagających z autogenerowaną dokumentacją
+* Analizę bazy danych oraz optymalizację zapytań na podstawie wniosków z modułu CLAAI01
+* Spis wykorzystanych repozytoriów wraz z linkami
 
 Struktura dokumentu
 -------------------
 
-Dokument składa się z pięciu głównych rozdziałów:
+Dokument składa się z następujących części:
 
-1. **Wstęp** - wprowadzenie do projektu
-2. **Analiza szczegółowa** - pięć kluczowych aspektów systemu bazodanowego
-3. **Projekt, nadzór koncepcji, modele** - architektura systemu
-4. **Analiza bazy danych** - struktura i optymalizacja
-5. **Opis repozytoriów** - dokumentacja kodu źródłowego
+1. **Badania literaturowe** – przegląd materiałów i repozytoriów
+2. **Projekt bazy danych** – modele i wizualizacja danych
+3. **Prezentacja skryptów** – opis i dokumentacja wygenerowanych narzędzi
+4. **Analiza i optymalizacja** – ocena działania bazy oraz usprawnienia zapytań
+5. **Repozytoria** – lista wszystkich wykorzystanych źródeł i linków
 
-Konwencje
----------
 
-W dokumencie stosowane są następujące konwencje:
-
-* ``kod`` - fragmenty kodu lub nazwy techniczne
-* **pogrubienie** - ważne terminy
-* *kursywa* - odniesienia i cytaty
