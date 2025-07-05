@@ -37,9 +37,4 @@ Projekty w rozdziale 2 są zarządzane jako submoduły Git:
 * **bezpieczenstwo** - Zabezpieczenia i audyt
 * **Kopie_zapasowe_i_odzyskiwanie_danych** - Strategie backup i recovery
 
-Repozytoria zewnętrzne
-----------------------
 
-Projekty powiązane, ale zarządzane niezależnie:
-
-.. include:: ../3rep/repos_list.rst
