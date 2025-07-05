@@ -1,7 +1,3 @@
-Oto spersonalizowana i wzbogacona wersja pliku **README.md** dla Twojego repozytorium **m‑smieja‑database‑report** — zawierająca ulepszone opisy, sekcję instalacji, przykłady i wskazówki, które poprawią czytelność i użyteczność projektu:
-
----
-
 # 📘 Database Report
 
 **Kompleksowa dokumentacja systemu bazy danych**
