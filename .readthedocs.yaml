@@ -12,3 +12,7 @@ python:
 sphinx:
   configuration: conf.py
  
+
+formats:
+  - pdf
+  - htmlzip

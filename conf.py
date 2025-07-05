@@ -47,3 +47,10 @@ pdf_use_coverpage = True
 # Dodatkowe ścieżki dla submodułów
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('2.chapter'))
+
+latex_engine = 'pdflatex'  # lub 'xelatex' lub 'lualatex'
+
+latex_documents = [
+    ('index', 'DatabaseReport.tex', 'Database Report', 'Milosz Smieja', 'manual'),
+]
+
