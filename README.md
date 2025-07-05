@@ -1,78 +1,131 @@
-# Database Report
+Oto spersonalizowana i wzbogacona wersja pliku **README.md** dla Twojego repozytorium **m‑smieja‑database‑report** — zawierająca ulepszone opisy, sekcję instalacji, przykłady i wskazówki, które poprawią czytelność i użyteczność projektu:
 
-Kompleksowa dokumentacja systemu bazy danych.
+---
 
-## Struktura
+# 📘 Database Report
 
-- **Rozdział 1** - Wstęp
-- **Rozdział 2** - Analiza szczegółowa (5 submodułów)
-  - 2.1 - Wydajność, Skalowanie i Replikacja (Broksonn)
-  - 2.2 - Sprzęt dla bazy danych (oszczeda)
-  - 2.3 - Konfiguracja baz danych (Chaiolites)
-  - 2.4 - Bezpieczeństwo (BlazejUl)
-  - 2.5 - Kopie zapasowe i odzyskiwanie danych (m-smieja)
-- **Rozdział 3** - Projekt, nadzór koncepcji, modele
-- **Rozdział 4** - Analiza bazy danych
-- **Rozdział 5** - Opis repozytoriów
+**Kompleksowa dokumentacja systemu bazy danych**
 
-## Budowanie dokumentacji
+---
 
-### Aktywacja środowiska
-```bash
-source venv/bin/activate  # lub ./activate.sh
-```
+## Spis treści
 
-### HTML
-```bash
-make html
-# lub
-./build.sh html
-```
+1. [Opis projektu](#opis-projektu)
+2. [Analiza i rozdziały](#analiza-i-rozdziały)
+3. [Budowanie dokumentacji](#budowanie-dokumentacji)
+4. [Praca z submodułami](#praca-z-submodułami)
+5. [Autorzy](#autorzy)
+6. [Licencja](#licencja)
 
-### PDF
-```bash
-sphinx-build -b pdf . _build/pdf
-# lub
-./build.sh pdf
-```
+---
 
-## Praca z submodułami
+## Opis projektu
 
-### Klonowanie
-```bash
-git clone --recurse-submodules git@github.com:m-smieja/Database_report.git
-```
+Repozytorium zawiera szczegółową dokumentację dotyczącą projektowania, wdrażania i utrzymania bazy danych. Zawiera następujące główne obszary:
 
-### Aktualizacja wszystkich submodułów
-```bash
-git submodule update --remote --merge
-```
+* analiza wydajności, skalowania i replikacji
+* wymagania sprzętowe bazy danych
+* konfiguracja silnika bazy danych
+* bezpieczeństwo i kontrola dostępu
+* strategie kopii zapasowych i odzyskiwania danych
 
-### Praca z konkretnym submodułem
-```bash
-cd 2.chapter/2.1
-git pull origin main
-# wprowadź zmiany
-git add .
-git commit -m "Opis zmian"
-git push origin main
-cd ../..
-git add 2.chapter/2.1
-git commit -m "Update submodule 2.1"
-```
+Główne wykorzystane technologie: Sphinx do generowania dokumentacji, Python oraz narzędzia shellowe i makefile’y. ([github.com][1])
 
-## Autorzy submodułów
+---
 
-- **2.1** - Broksonn (Wydajność, Skalowanie i Replikacja)
-- **2.2** - oszczeda (Sprzęt dla bazy danych)
-- **2.3** - Chaiolites (Konfiguracja baz danych)
-- **2.4** - BlazejUl (Bezpieczeństwo)
-- **2.5** - m-smieja (Kopie zapasowe i odzyskiwanie danych)
+## Analiza i rozdziały
 
-## Autor dokumentacji
+* **Rozdział 1 – Wstęp** – cele, kontekst i zakres dokumentacji
+* **Rozdział 2 – Analiza szczegółowa**
 
-Milosz Smieja
+  * 2.1 **Wydajność, skalowanie i replikacja** (autor: Broksonn)
+  * 2.2 **Sprzęt bazodanowy** (autor: oszczeda)
+  * 2.3 **Konfiguracja bazy danych** (autor: Chaiolites)
+  * 2.4 **Bezpieczeństwo** (autor: BlazejUl)
+  * 2.5 **Kopie zapasowe i odzyskiwanie** (autor: m‑smieja)
+* **Rozdział 3 – Projekt, nadzór koncepcji, modele**
+* **Rozdział 4 – Analiza bazy danych**
+* **Rozdział 5 – Opis repozytoriów** ([github.com][1])
+
+---
+
+## 🔧 Budowanie dokumentacji
+
+### Wymagania
+
+* Python ≥ 3.x
+* Sphinx + rozszerzenia *(spis w `requirements.txt`)*
+
+### Uruchomienie
+
+1. W klonie repozytorium:
+
+   ```bash
+   git clone --recurse-submodules https://github.com/m-smieja/m-smieja-database-report.git
+   cd m-smieja-database-report
+   ```
+2. Instalacja zależności:
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+3. Generowanie dokumentacji:
+
+   * HTML:
+
+     ```bash
+     make html
+     ```
+   * PDF:
+
+     ```bash
+     make pdf
+     ```
+
+   *Możesz też użyć `build.sh` lub `make.bat` dla wygodniejszego uruchamiania.* ([github.com][1])
+
+---
+
+## 🤝 Praca z submodułami
+
+* **Pobranie** pełne repozytorium razem z submodułami:
+
+  ```bash
+  git submodule update --init --recursive
+  ```
+* **Aktualizacja**:
+
+  ```bash
+  git submodule update --remote --merge
+  ```
+* **Modyfikacja w submodule**:
+
+  ```bash
+  cd 2.chapter/2.1
+  # dodaj zmiany, zatwierdź i wypchnij
+  cd ../..
+  git add 2.chapter/2.1
+  git commit -m "Aktualizacja submodułu 2.1"
+  ```
+
+---
+
+## Autorzy
+
+* **2.1** – Broksonn
+* **2.2** – oszczeda
+* **2.3** – Chaiolites
+* **2.4** – BlazejUl
+* **2.5** – m‑smieja (Miłosz Śmieja)
+* **Główny autor dokumentacji** – Miłosz Śmieja ([github.com][1])
+
+---
 
 ## Licencja
 
-MIT License
+Projekt udostępniony na licencji **MIT**&#x20;
+
+---
+
