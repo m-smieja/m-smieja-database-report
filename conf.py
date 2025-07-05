@@ -16,7 +16,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
-    'rst2pdf.pdfbuilder',
+    
 ]
 
 templates_path = ['_templates']
