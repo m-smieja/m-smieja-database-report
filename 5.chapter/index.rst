@@ -43,31 +43,3 @@ Repozytoria zewnętrzne
 Projekty powiązane, ale zarządzane niezależnie:
 
 .. include:: ../3rep/repos_list.rst
-
-Workflow deweloperski
----------------------
-
-1. Klonowanie z submodułami::
-
-    git clone --recurse-submodules git@github.com:m-smieja/Database_report.git
-
-2. Praca nad dokumentacją::
-
-    cd Database_report
-    # edycja plików .rst
-    make html  # budowanie HTML
-    sphinx-build -b pdf . _build/pdf  # budowanie PDF
-
-3. Aktualizacja submodułów::
-
-    git submodule update --remote --merge
-
-CI/CD
------
-
-Projekt wykorzystuje GitHub Actions do:
-
-* Automatycznego budowania dokumentacji
-* Walidacji składni RST
-* Generowania PDF
-* Deploymentu na GitHub Pages
